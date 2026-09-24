@@ -55,7 +55,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
       analysis.importantFacts.forEach((f, idx) => {
         cards.push({
           id: `fc-fact-${idx}-${Date.now()}`,
-          front: `Key Principle / Fact #${idx + 1} in ${material.topic}:`,
+          front: f.length > 60 ? `According to the material, what is the significance of: "${f.substring(0, 50)}..."?` : `Explain the key detail: "${f}"`,
           back: f,
           topicTag: material.topic,
         });
