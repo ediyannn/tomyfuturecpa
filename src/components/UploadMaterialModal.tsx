@@ -78,10 +78,14 @@ export const UploadMaterialModal: React.FC<UploadMaterialModalProps> = ({
     setSelectedFile(file);
 
     // Auto-fill subject/topic heuristics from file name if empty
-    const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
-    if (!topic) setTopic(cleanName);
-    if (!subject && /database|sql|db/i.test(cleanName)) setSubject('Database Management');
-    else if (!subject && /python|java|code/i.test(cleanName)) setSubject('Computer Science');
+    let cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
+    if (/^inbound\d+$/i.test(cleanName) || /^\d+$/.test(cleanName)) {
+      cleanName = 'Study Document';
+    }
+    if (!topic || /^inbound\d+$/i.test(topic)) setTopic(cleanName);
+    if (!subject && (/database|sql|db/i.test(cleanName) || /sql/i.test(file.name))) setSubject('Database Management');
+    else if (!subject && /python|java|code|programming/i.test(cleanName)) setSubject('Computer Science');
+    else if (!subject && /account|audit|tax|fin|ledger|balance/i.test(cleanName)) setSubject('Accountancy');
     else if (!subject) setSubject('General Studies');
 
     // If image or PDF, create data preview/payload
