@@ -25,8 +25,84 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
 }) => {
   const { showToast } = useToast();
 
+  const generateLocalDeck = (material: LearningMaterial): FlashcardDeck => {
+    const cards: Flashcard[] = [];
+    const analysis = material.analysis;
+
+    if (analysis?.definitions) {
+      analysis.definitions.forEach((d, idx) => {
+        cards.push({
+          id: `fc-def-${idx}-${Date.now()}`,
+          front: `What is ${d.term}?`,
+          back: d.definition,
+          topicTag: d.context || material.topic,
+        });
+      });
+    }
+
+    if (analysis?.importantConcepts) {
+      analysis.importantConcepts.forEach((c, idx) => {
+        cards.push({
+          id: `fc-conc-${idx}-${Date.now()}`,
+          front: `Explain the concept of ${c.name}:`,
+          back: c.explanation,
+          topicTag: c.name,
+        });
+      });
+    }
+
+    if (analysis?.importantFacts) {
+      analysis.importantFacts.forEach((f, idx) => {
+        cards.push({
+          id: `fc-fact-${idx}-${Date.now()}`,
+          front: `Key Principle / Fact #${idx + 1} in ${material.topic}:`,
+          back: f,
+          topicTag: material.topic,
+        });
+      });
+    }
+
+    if (cards.length === 0) {
+      cards.push(
+        {
+          id: `fc-std-1-${Date.now()}`,
+          front: `What are the core fundamentals of ${material.topic}?`,
+          back: `Foundational principles and operational frameworks in ${material.subject}.`,
+          topicTag: material.topic,
+        },
+        {
+          id: `fc-std-2-${Date.now()}`,
+          front: `How is active recall applied in ${material.subject}?`,
+          back: `By actively testing knowledge and reviewing structured flashcards regularly.`,
+          topicTag: 'Active Recall',
+        }
+      );
+    }
+
+    return {
+      id: 'deck-' + Date.now(),
+      materialId: material.id,
+      title: `${material.subject} Flashcards`,
+      subject: material.subject,
+      topic: material.topic,
+      cards,
+      createdAt: new Date().toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    };
+  };
+
   const existingDeck = decks.find((d) => d.materialId === activeMaterial.id);
-  const [currentDeck, setCurrentDeck] = useState<FlashcardDeck | null>(existingDeck || null);
+  const [currentDeck, setCurrentDeck] = useState<FlashcardDeck | null>(() => {
+    if (existingDeck && existingDeck.cards && existingDeck.cards.length > 0) {
+      return existingDeck;
+    }
+    const fallback = generateLocalDeck(activeMaterial);
+    onSaveDeck(fallback);
+    return fallback;
+  });
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -123,8 +199,13 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
       setIsFlipped(false);
       showToast(`Generated ${data.cards.length} active recall flashcards!`, 'success');
     } catch (err: any) {
-      console.error('Error generating flashcards:', err);
-      showToast('Generated flashcards with local study engine.', 'error');
+      console.warn('API flashcard generation fallback to local engine:', err);
+      const fallbackDeck = generateLocalDeck(activeMaterial);
+      setCurrentDeck(fallbackDeck);
+      onSaveDeck(fallbackDeck);
+      setCurrentIndex(0);
+      setIsFlipped(false);
+      showToast(`Generated ${fallbackDeck.cards.length} flashcards with local study engine!`, 'success');
     } finally {
       setIsGenerating(false);
     }
