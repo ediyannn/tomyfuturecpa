@@ -128,6 +128,38 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
+          {/* Avatar / Profile Picture Picker */}
+          <div className="flex items-center gap-4 pb-2 border-b border-slate-100">
+            <div className="w-14 h-14 rounded-2xl bg-[#800020]/15 text-[#800020] flex items-center justify-center font-bold text-lg overflow-hidden border border-slate-200 shrink-0">
+              {formData.avatarUrl ? (
+                <img src={formData.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                formData.name ? formData.name.charAt(0).toUpperCase() : 'G'
+              )}
+            </div>
+            <div className="space-y-1 flex-1">
+              <label className="font-semibold text-slate-700 block">Profile Picture / Avatar</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        setFormData({ ...formData, avatarUrl: reader.result as string });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#800020]/10 file:text-[#800020] hover:file:bg-[#800020]/25 cursor-pointer"
+                />
+              </div>
+              <p className="text-[10px] text-slate-400">Upload an image file (JPG, PNG) to replace the default initial.</p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="font-semibold text-slate-700">Full Name</label>

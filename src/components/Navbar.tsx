@@ -152,11 +152,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 transition-colors"
             title={`${user.name} - Accountancy Student`}
           >
-            <div className="w-8 h-8 rounded-xl bg-[#800020]/15 text-[#800020] flex items-center justify-center font-bold text-xs">
-              G
+            <div className="w-8 h-8 rounded-xl bg-[#800020]/15 text-[#800020] flex items-center justify-center font-bold text-xs overflow-hidden">
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover rounded-xl" />
+              ) : (
+                user.name ? user.name.charAt(0).toUpperCase() : 'G'
+              )}
             </div>
             <div className="hidden 2xl:block text-left text-xs">
-              <div className="font-semibold text-slate-800 leading-tight">Genelle</div>
+              <div className="font-semibold text-slate-800 leading-tight">{user.name || 'Genelle'}</div>
               <div className="text-[10px] text-slate-400">Accountancy</div>
             </div>
           </button>
