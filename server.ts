@@ -210,7 +210,7 @@ Analyze the following student learning material about "${subject || 'General Stu
 Description: ${description || 'N/A'}.
 
 CRITICAL INSTRUCTIONS:
-1. Base all analysis strictly and exclusively on the provided material. Do not introduce unsupported external trivia.
+1. Base all analysis strictly, comprehensively, and exclusively on the provided uploaded material. Extract every single concept, definition, example, procedure, and fact present in the source text without omitting information or introducing unsupported external assumptions.
 2. Return a valid JSON object matching this exact structure:
 {
   "mainTopics": ["Topic 1", "Topic 2", ...],

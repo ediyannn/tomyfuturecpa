@@ -140,9 +140,10 @@ export const UploadMaterialModal: React.FC<UploadMaterialModalProps> = ({
         });
       }
 
-      if (selectedFile && !textContent) {
+      if (selectedFile) {
         setAnalysisStep('Extracting structured text from document...');
-        textContent = `Course Material: ${selectedFile.name}\nSubject: ${subject}\nTopic: ${topic}\nDescription: ${description || 'Course study guide'}\n\nComprehensive academic concepts, computational procedures, terminology, and operational frameworks for ${subject} (${topic}).`;
+        const fileContentPart = textContent ? `\n\nPasted Notes / Extracted Text:\n${textContent}` : '';
+        textContent = `Source File Name: ${selectedFile.name}\nSubject: ${subject}\nTopic: ${topic || selectedFile.name.replace(/\.[^/.]+$/, '')}\nDescription/Notes: ${description || 'Student uploaded study material'}${fileContentPart}`;
       }
 
       setAnalysisStep('AI analyzing core concepts, definitions & procedures...');
