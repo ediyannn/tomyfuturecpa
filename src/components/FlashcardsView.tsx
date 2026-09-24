@@ -107,6 +107,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [filterMode, setFilterMode] = useState<'all' | 'known' | 'review'>('all');
+  const [cardCount, setCardCount] = useState<number>(10);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Cards filtered according to status
@@ -173,6 +174,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
           subject: activeMaterial.subject,
           topic: activeMaterial.topic,
           structuredAnalysis: activeMaterial.analysis,
+          cardCount,
         }),
       });
 
@@ -182,7 +184,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
       const newDeck: FlashcardDeck = {
         id: 'deck-' + Date.now(),
         materialId: activeMaterial.id,
-        title: `${activeMaterial.subject} Flashcards`,
+        title: `${activeMaterial.subject} Flashcards (${data.cards.length})`,
         subject: activeMaterial.subject,
         topic: activeMaterial.topic,
         cards: data.cards,
@@ -231,16 +233,32 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
           </h1>
         </div>
 
-        <button
-          onClick={handleGenerateFlashcards}
-          disabled={isGenerating}
-          className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white rounded-xl shadow-xs transition-colors ${
-            isGenerating ? 'bg-slate-300 cursor-not-allowed' : 'bg-[#800020] hover:bg-[#5A0016]'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>{isGenerating ? 'Generating...' : 'Generate New Cards'}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2 py-1 text-xs">
+            <span className="text-slate-500 font-medium">Count:</span>
+            <select
+              value={cardCount}
+              onChange={(e) => setCardCount(Number(e.target.value))}
+              className="bg-transparent font-semibold text-slate-800 focus:outline-none cursor-pointer"
+            >
+              <option value={5}>5 cards</option>
+              <option value={10}>10 cards</option>
+              <option value={15}>15 cards</option>
+              <option value={20}>20 cards</option>
+            </select>
+          </div>
+
+          <button
+            onClick={handleGenerateFlashcards}
+            disabled={isGenerating}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white rounded-xl shadow-xs transition-colors ${
+              isGenerating ? 'bg-slate-300 cursor-not-allowed' : 'bg-[#800020] hover:bg-[#5A0016]'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>{isGenerating ? 'Generating...' : 'Generate New Cards'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Stats Bar */}
