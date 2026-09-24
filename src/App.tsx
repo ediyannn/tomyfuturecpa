@@ -191,6 +191,7 @@ function StudyMateApp() {
 
   // Material deletion
   const handleDeleteMaterial = (id: string) => {
+    if (!id) return;
     const updated = materials.filter((m) => m.id !== id);
     setMaterials(updated);
     saveStoredMaterials(updated);

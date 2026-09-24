@@ -43,6 +43,20 @@ export const UploadMaterialModal: React.FC<UploadMaterialModalProps> = ({
   const [analysisStep, setAnalysisStep] = useState('');
   const [analyzedMaterial, setAnalyzedMaterial] = useState<LearningMaterial | null>(null);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setSelectedFile(null);
+      setPastedText('');
+      setPreviewImage(null);
+      setSubject('');
+      setTopic('');
+      setDescription('');
+      setIsAnalyzing(false);
+      setAnalysisStep('');
+      setAnalyzedMaterial(null);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleFileChange = (file: File) => {
