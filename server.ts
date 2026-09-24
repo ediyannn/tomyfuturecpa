@@ -322,7 +322,7 @@ app.post('/api/ai/generate-quiz', async (req: Request, res: Response) => {
 
     if (ai) {
       const prompt = `You are StudyMate's Quiz Generation Engine.
-Generate an educational quiz strictly based on the provided material.
+Generate an educational quiz STRICTLY based on the provided material.
 Subject: ${subject}
 Topic: ${topic}
 Target Question Count: ${count}
@@ -331,22 +331,23 @@ Allowed Question Types: ${(questionTypes || ['Multiple Choice', 'True or False']
 Quiz Mode: ${mode}
 
 CRITICAL RULES:
-1. Every question must be directly verifiable from the source material, keeping questions and explanations clear, simple, and direct without over-complication or unnecessary jargon.
-2. Provide a helpful hint that prompts thinking without spoiling the answer.
-3. Provide a clear, concise explanation justifying why the correct answer is right.
-4. Assign a specific topic tag (e.g. "SELECT", "WHERE clause", "ORDER BY", "JOIN", "Primary Key") to each question so we can track weak topics.
-5. Return a valid JSON array of questions matching:
+1. Every question must be directly verifiable from the source material. DO NOT use general AI knowledge, DO NOT make up facts, and DO NOT hallucinate.
+2. DO NOT create duplicate questions with slightly different wording just to reach the target count. Prioritize important concepts, definitions, key terms, processes, examples, facts, and relationships explicitly found in the material.
+3. If the uploaded material does not contain enough unique information to support ${count} distinct questions, generate ONLY the maximum number of valid unique questions supported by the material without inventing or duplicating.
+4. Provide a helpful hint that prompts thinking without spoiling the answer.
+5. Provide a clear, concise explanation justifying why the correct answer is right.
+6. Assign a specific topic tag to each question.
+7. Return a valid JSON array of questions matching:
 [
   {
     "id": "q1",
     "type": "multiple-choice" | "true-false" | "identification" | "fill-blank" | "matching" | "short-answer",
     "prompt": "Question text?",
-    "options": ["A. Option 1", "B. Option 2", "C. Option 3", "D. Option 4"], // Required for multiple-choice
-    "correctAnswer": "Exact correct answer string (e.g. 'B. SELECT' or 'True')",
+    "options": ["A. Option 1", "B. Option 2", "C. Option 3", "D. Option 4"],
+    "correctAnswer": "Exact correct answer string",
     "hint": "Gentle guiding hint encouraging recall",
     "explanation": "Why this answer is correct based on the material",
-    "topicTag": "Specific Subtopic Name",
-    "matchingPairs": [{"left": "Term A", "right": "Definition A"}] // Only if type is matching
+    "topicTag": "Specific Subtopic Name"
   }
 ]`;
 
@@ -567,17 +568,18 @@ app.post('/api/ai/generate-flashcards', async (req: Request, res: Response) => {
     const count = parseInt(cardCount, 10) || 10;
 
     if (ai) {
-      const prompt = `You are StudyMate. Generate a set of exactly ${count} high-retention flashcards based on this material.
+      const prompt = `You are StudyMate. Generate a set of flashcards STRICTLY based on this material.
 Subject: ${subject}
 Topic: ${topic}
+Target Card Count: ${count}
 
 CRITICAL RULES:
-- Keep explanations clear, simple, and direct. Avoid over-complicating or adding unnecessary jargon. Provide accurate answers based strictly on the uploaded material.
-- Do not just output generic facts. Generate diverse, highly relevant questions covering definitions, important concepts, technical procedures, formulas/syntax, and key principles found in the material.
-- Front should ask a focused, clear conceptual, procedural, or analytical question.
-- Back should provide a concise, crystal-clear explanation grounded in the text.
-- Include a topicTag for categorization.
-- Return a valid JSON array of ${count} items:
+1. Every flashcard must be directly derived from the source material. DO NOT add information from general AI knowledge or make up facts.
+2. DO NOT create duplicate flashcards with slightly different wording just to reach the target count. Prioritize unique concepts, definitions, key terms, processes, examples, facts, and relationships explicitly found in the material.
+3. If the material does not contain enough unique information to support ${count} distinct flashcards, generate ONLY the maximum number of valid unique flashcards supported by the material without inventing or duplicating.
+4. Front should ask a focused conceptual or analytical question. Back should provide a clear, concise explanation grounded in the text.
+5. Include a topicTag for categorization.
+6. Return a valid JSON array of items:
 [
   { "id": "fc-1", "front": "Question", "back": "Answer", "topicTag": "Topic" }
 ]`;
@@ -883,13 +885,11 @@ app.post('/api/ai/chat', async (req: Request, res: Response) => {
       const systemInstruction = `You are StudyMate Tutor, a friendly, patient, and highly effective academic study coach.
 Your job is to help students truly understand their learning materials about ${subject || 'their coursework'} (Topic: ${topic || 'General'}).
 
-STUDY COACH GUIDELINES:
-- Ground your answers strictly in the student's uploaded material.
-- If the uploaded material does not provide enough information to answer a question, clearly and honestly state: "The uploaded material does not provide enough information to answer this question."
-- Encourage active recall! If the user asks for an answer, provide a hint or ask a guiding question first when helpful.
-- When asked "Explain this simply", use an intuitive real-world analogy.
-- When asked "Give me an example", provide a concrete practical demonstration with syntax/code if relevant.
-- When asked "Why is my answer wrong?", break down the logical misunderstanding with care and encouragement.`;
+CRITICAL RULES (STRICT SOURCE GROUNDING):
+1. You must ONLY use the provided source material text.
+2. If the user asks a question, topic, or information that is NOT present in the uploaded material, you MUST respond with: "I couldn't find information about this topic in your uploaded study material. Please upload a material that covers this topic."
+3. NEVER make up facts, never use general AI knowledge, and never hallucinate outside information.
+4. Encourage active recall! When helpful, provide a hint or ask a guiding question.`;
 
       const contents = messages.map((m: any) => ({
         role: m.role === 'user' ? 'user' : 'model',

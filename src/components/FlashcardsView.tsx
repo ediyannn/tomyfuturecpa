@@ -245,6 +245,9 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
               <option value={10}>10 cards</option>
               <option value={15}>15 cards</option>
               <option value={20}>20 cards</option>
+              <option value={25}>25 cards</option>
+              <option value={30}>30 cards</option>
+              <option value={50}>50 cards</option>
             </select>
           </div>
 

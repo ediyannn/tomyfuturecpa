@@ -412,12 +412,12 @@ export const QuizView: React.FC<QuizViewProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-700">Number of Questions</label>
-                <div className="grid grid-cols-5 gap-1.5">
-                  {[5, 10, 15, 20, 30].map((c) => (
+                <div className="grid grid-cols-7 gap-1">
+                  {[5, 10, 15, 20, 25, 30, 50].map((c) => (
                     <button
                       key={c}
                       onClick={() => setQuestionCount(c)}
-                      className={`py-2 text-xs font-semibold rounded-xl border text-center transition-all ${
+                      className={`py-2 text-[11px] font-semibold rounded-xl border text-center transition-all ${
                         questionCount === c
                           ? 'bg-[#800020] text-white border-[#800020]'
                           : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
