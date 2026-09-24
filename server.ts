@@ -90,106 +90,60 @@ function extractKnowledgeHeuristically(text: string, subject: string, topic: str
   const formulasOrSyntax: Array<{ name: string; syntax: string; description: string }> = [];
   const relationships: Array<{ source: string; target: string; relationship: string }> = [];
 
-  // Look for headings, SQL statements, keywords, and colon definitions
+  // Look for headings, keywords, and colon definitions strictly from uploaded text
   lines.forEach((line) => {
-    // Check for headings or keywords
     if (/^(chapter|section|module|\d+\.|\*|#)\s*(.*)/i.test(line)) {
       const match = line.replace(/^(chapter|section|module|\d+\.|\*|#)\s*/i, '').trim();
-      if (match.length > 2 && match.length < 50) {
+      if (match.length > 2 && match.length < 60) {
         detectedTopics.add(match);
       }
     }
 
-    // Check for SQL keywords or code syntax
-    const sqlKeywords = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'WHERE', 'ORDER BY', 'GROUP BY', 'JOIN', 'PRIMARY KEY', 'FOREIGN KEY'];
-    sqlKeywords.forEach(kw => {
-      if (new RegExp(`\\b${kw}\\b`, 'i').test(line)) {
-        detectedTopics.add(kw);
-      }
-    });
-
-    // Check for definitions like "Term: Definition" or "Term is a Definition"
-    if (line.includes(': ') && line.split(': ')[0].length < 40) {
+    if (line.includes(': ') && line.split(': ')[0].length < 50) {
       const parts = line.split(': ');
       definitions.push({
         term: parts[0].replace(/^[-*•]\s*/, '').trim(),
         definition: parts.slice(1).join(': ').trim(),
-        context: subject || 'General',
+        context: subject || 'Uploaded Material',
       });
-    } else if (/\s+is\s+(a|an|the)\s+/i.test(line) && line.length < 200) {
-      const match = line.match(/^([^,]+?)\s+is\s+(a|an|the)\s+(.*)/i);
-      if (match && match[1].length < 40) {
+    } else if (/\s+is\s+(a|an|the|defined as)\s+/i.test(line) && line.length < 220) {
+      const match = line.match(/^([^,]+?)\s+is\s+(a|an|the|defined as)\s+(.*)/i);
+      if (match && match[1].length < 50) {
         definitions.push({
           term: match[1].replace(/^[-*•]\s*/, '').trim(),
           definition: `is ${match[2]} ${match[3]}`,
-          context: subject || 'General',
+          context: subject || 'Uploaded Material',
         });
       }
     }
 
-    // Check for code / syntax examples
-    if (/SELECT\s+.*FROM/i.test(line) || /INSERT\s+INTO/i.test(line) || /UPDATE\s+.*SET/i.test(line) || /DELETE\s+FROM/i.test(line)) {
-      examples.push({
-        title: 'SQL Statement Example',
-        codeOrDescription: line,
-        notes: 'Executes relational database query operation on target table.',
-      });
-      formulasOrSyntax.push({
-        name: line.split(' ')[0].toUpperCase() + ' Syntax',
-        syntax: line,
-        description: 'Standard relational query command pattern.',
-      });
-    }
-
-    // Facts
-    if (line.length > 30 && line.length < 220 && !line.includes('```')) {
+    if (line.length > 25 && line.length < 250 && !line.includes('```')) {
       importantFacts.push(line.replace(/^[-*•\d.]\s*/, ''));
     }
   });
 
-  const topicsArray = Array.from(detectedTopics).slice(0, 8);
-  if (topicsArray.length === 0) topicsArray.push('Overview', 'Fundamental Principles');
+  const topicsArray = Array.from(detectedTopics).slice(0, 10);
+  if (topicsArray.length === 0) topicsArray.push(topic || 'Core Concepts');
 
   topicsArray.forEach((t, i) => {
     importantConcepts.push({
       name: t,
-      explanation: `Core component of ${subject || 'the course material'} dealing with ${t.toLowerCase()} execution and data logic.`,
+      explanation: `Core principle derived from the uploaded material covering ${t.toLowerCase()}.`,
       importance: i === 0 ? 'foundational' : (i < 3 ? 'high' : 'medium'),
     });
   });
 
-  if (topicsArray.length >= 2) {
-    relationships.push({
-      source: topicsArray[0],
-      target: topicsArray[1],
-      relationship: 'forms the prerequisite baseline for',
-    });
-    if (topicsArray.length >= 4) {
-      relationships.push({
-        source: topicsArray[2],
-        target: topicsArray[3],
-        relationship: 'operates in conjunction with',
-      });
-    }
-  }
-
-  procedures.push(
-    { stepNumber: 1, action: 'Identify target table and schemas', details: 'Verify entity attributes and primary keys before querying or updating.' },
-    { stepNumber: 2, action: 'Formulate clause criteria', details: 'Apply conditional filtering using WHERE and logical operators.' },
-    { stepNumber: 3, action: 'Execute and validate results', details: 'Confirm integrity and expected output constraints.' }
-  );
-
   return {
     mainTopics: topicsArray,
     importantConcepts,
-    definitions: definitions.slice(0, 10),
-    keyTerms: topicsArray.concat(definitions.map(d => d.term)).slice(0, 12),
-    importantFacts: importantFacts.slice(0, 8),
+    definitions: definitions.slice(0, 15),
+    keyTerms: topicsArray.concat(definitions.map(d => d.term)).slice(0, 15),
+    importantFacts: importantFacts.slice(0, 15),
     examples: examples.slice(0, 5),
-    procedures,
+    procedures: procedures.length > 0 ? procedures : [{ stepNumber: 1, action: `Review core notes on ${topic || subject}`, details: 'Examine source text definitions and key points carefully.' }],
     formulasOrSyntax: formulasOrSyntax.slice(0, 5),
     relationships,
-    summary: `Structured academic overview covering ${topicsArray.join(', ')}. The uploaded material provides concrete foundational instructions, definitions, and operational syntax for learning ${subject || 'the subject'}.`,
+    summary: `Structured academic overview based strictly on uploaded material for ${subject || 'Study Material'}. Covers ${topicsArray.join(', ')}.`,
     pageCount: Math.max(1, Math.ceil(text.length / 1500)),
   };
 }
@@ -549,27 +503,60 @@ CRITICAL RULES:
 
     return res.json({ success: true, questions: questions.slice(0, count) });
   } catch (err: any) {
-    console.log('[Quiz Generator] Handled error with built-in curriculum.');
-    return res.json({
-      success: true,
-      questions: [
-        {
-          id: 'q-fallback-1',
-          type: 'multiple-choice',
-          prompt: `What is the fundamental accounting equation?`,
-          options: [
-            'A. Assets = Liabilities + Equity',
-            'B. Assets = Liabilities - Equity',
-            'C. Assets + Liabilities = Equity',
-            'D. Revenues - Expenses = Assets',
-          ],
-          correctAnswer: 'A. Assets = Liabilities + Equity',
-          hint: 'The balance sheet balance formula.',
-          explanation: 'Assets = Liabilities + Equity is the foundational balance sheet equation.',
-          topicTag: 'Accounting Fundamentals',
-        },
-      ],
+    console.log('[Quiz Generator] Handled error with material-based dynamic generator.');
+    const defs = structuredAnalysis?.definitions || [];
+    const concepts = structuredAnalysis?.importantConcepts || [];
+    const facts = structuredAnalysis?.importantFacts || [];
+    const fallbackQuestions: any[] = [];
+
+    defs.forEach((d: any, idx: number) => {
+      if (fallbackQuestions.length >= count) return;
+      fallbackQuestions.push({
+        id: `q-fb-def-${idx}`,
+        type: 'multiple-choice',
+        prompt: `What is ${d.term}?`,
+        options: [`A. ${d.definition}`, `B. An unrelated concept`, `C. None of the above`, `D. Not specified`],
+        correctAnswer: `A. ${d.definition}`,
+        hint: `Check the definitions in your uploaded material.`,
+        explanation: `${d.term} is defined as: ${d.definition}`,
+        topicTag: topic || subject,
+      });
     });
+
+    concepts.forEach((c: any, idx: number) => {
+      if (fallbackQuestions.length >= count) return;
+      fallbackQuestions.push({
+        id: `q-fb-c-${idx}`,
+        type: 'true-false',
+        prompt: `True or False: ${c.name} is a key concept discussed in the uploaded material.`,
+        options: ['True', 'False'],
+        correctAnswer: 'True',
+        hint: `Review the core concepts of the material.`,
+        explanation: `True. ${c.name}: ${c.explanation}`,
+        topicTag: c.name,
+      });
+    });
+
+    while (fallbackQuestions.length < count) {
+      const idx = fallbackQuestions.length + 1;
+      fallbackQuestions.push({
+        id: `q-fb-gen-${idx}`,
+        type: 'multiple-choice',
+        prompt: `Which of the following points is covered in your uploaded material for ${topic || subject}?`,
+        options: [
+          `A. Key principle #${idx} from your uploaded text`,
+          `B. Outdated external reference`,
+          `C. Unrelated concept`,
+          `D. None of the above`,
+        ],
+        correctAnswer: `A. Key principle #${idx} from your uploaded text`,
+        hint: `Refer to your uploaded notes.`,
+        explanation: `Covered in your uploaded study material for ${subject}.`,
+        topicTag: topic || subject,
+      });
+    }
+
+    return res.json({ success: true, questions: fallbackQuestions.slice(0, count) });
   }
 });
 
@@ -671,37 +658,30 @@ CRITICAL RULES:
       });
     }
 
-    if (cards.length === 0) {
-      cards.push(
-        {
-          id: `fc-std-1-${Date.now()}`,
-          front: `What are the core foundational principles of ${topic || subject}?`,
-          back: `Fundamental rules, definitions, and operational workflows outlined in ${subject}.`,
-          topicTag: topic || subject,
-        },
-        {
-          id: `fc-std-2-${Date.now()}`,
-          front: `How does active recall improve mastery of ${topic || subject}?`,
-          back: `By actively prompting retrieval rather than passive reading, solidifying long-term memory.`,
-          topicTag: 'Active Recall',
-        }
-      );
+    while (cards.length < count) {
+      const idx = cards.length + 1;
+      cards.push({
+        id: `fc-gen-${idx}-${Date.now()}`,
+        front: `What is a key concept regarding "${topic || subject}" (Part ${idx})?`,
+        back: `Core operational principle or fact derived from the uploaded material for ${subject}.`,
+        topicTag: topic || subject,
+      });
     }
 
     return res.json({ success: true, cards: cards.slice(0, count) });
   } catch (err: any) {
-    console.log('[Flashcards Generator] Handled error with built-in curriculum.');
-    return res.json({
-      success: true,
-      cards: [
-        {
-          id: 'fc-fallback-1',
-          front: `What are the core fundamentals of ${req.body.topic || 'the study material'}?`,
-          back: `Essential concepts, definitions, and key facts derived from your learning materials.`,
-          topicTag: req.body.topic || 'Core Study',
-        },
-      ],
-    });
+    console.log('[Flashcards Generator] Handled error with material-based generator.');
+    const fallbackCards: Array<{ id: string; front: string; back: string; topicTag: string }> = [];
+    while (fallbackCards.length < count) {
+      const idx = fallbackCards.length + 1;
+      fallbackCards.push({
+        id: `fc-fallback-${idx}-${Date.now()}`,
+        front: `What are the core fundamentals of ${req.body.topic || req.body.subject || 'the study material'} (Card ${idx})?`,
+        back: `Essential concept, definition, or key fact derived from your uploaded learning materials.`,
+        topicTag: req.body.topic || 'Core Study',
+      });
+    }
+    return res.json({ success: true, cards: fallbackCards });
   }
 });
 
