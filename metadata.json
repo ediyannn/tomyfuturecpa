@@ -1,0 +1,6 @@
+{
+  "name": "StudyMate - AI-Powered Personal Study Assistant",
+  "description": "Transform your learning materials, lecture notes, PDFs, and textbook photos into structured reviewers, interactive quizzes, flashcards, and adaptive study activities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
