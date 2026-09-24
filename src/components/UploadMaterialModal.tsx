@@ -86,7 +86,7 @@ export const UploadMaterialModal: React.FC<UploadMaterialModalProps> = ({
     if (!subject && (/database|sql|db/i.test(cleanName) || /sql/i.test(file.name))) setSubject('Database Management');
     else if (!subject && /python|java|code|programming/i.test(cleanName)) setSubject('Computer Science');
     else if (!subject && /account|audit|tax|fin|ledger|balance/i.test(cleanName)) setSubject('Accountancy');
-    else if (!subject) setSubject('General Studies');
+    else if (!subject) setSubject(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
 
     // If image or PDF, create data preview/payload
     if (file.type.startsWith('image/') || file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {

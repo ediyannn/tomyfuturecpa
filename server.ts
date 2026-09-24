@@ -206,7 +206,7 @@ app.post('/api/ai/analyze-material', async (req: Request, res: Response) => {
 
     if (ai) {
       const prompt = `You are StudyMate, an expert educational analysis AI.
-Analyze the following student learning material about "${subject || 'General Studies'}" (Topic: "${topic || 'Overview'}").
+Analyze the following student learning material about "${subject || 'Uploaded Material'}" (Topic: "${topic || 'Overview'}").
 Description: ${description || 'N/A'}.
 
 CRITICAL INSTRUCTIONS:
